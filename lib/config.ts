@@ -3,4 +3,4 @@ export const COST_CONFIG = {
   maxPaymentAmount: 1.0, // Max payment allowed
 };
 
-export const BASE_URL = 'https://brand-agent.vercel.app';
+export const BASE_URL = 'https://brand-agent-six.vercel.app';

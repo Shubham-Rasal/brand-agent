@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { extractBrandAssets } from 'openbrand';
 import { z } from 'zod';
-import { COST_CONFIG } from '@/lib/config';
+import { COST_CONFIG, BASE_URL } from '@/lib/config';
 import {
   createPaymentRequirements,
   verifyPayment,
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const paymentHeaderV1 = request.headers.get('X-PAYMENT');
     const paymentHeader = paymentHeaderV2 || paymentHeaderV1;
 
-    const requestUrl = `${new URL(request.url).origin}${new URL(request.url).pathname}`;
+    const requestUrl = `${BASE_URL}/api/brand-extraction`;
 
     const paymentRequirements = createPaymentRequirements(
       `$${COST_CONFIG.brandExtraction}`,

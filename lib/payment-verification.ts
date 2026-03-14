@@ -30,7 +30,7 @@ export function createPaymentRequirements(
         ? 'eip155:84532'
         : network;
 
-  const payTo = process.env.USDC_RECEIVING_WALLET_ADDRESS as `0x${string}`;
+  const payTo = process.env.USDC_RECEIVING_WALLET_ADDRESS?.trim() as `0x${string}` | undefined;
   if (!payTo) {
     throw new Error('USDC_RECEIVING_WALLET_ADDRESS not configured');
   }

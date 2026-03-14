@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { extractBrandAssets } from 'openbrand';
 import { z } from 'zod';
-import { COST_CONFIG, BASE_URL } from '@/lib/config';
+import { COST_CONFIG } from '@/lib/config';
 import {
   createPaymentRequirements,
   verifyPayment,
@@ -20,50 +20,60 @@ const InputSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // Payment verification
-    const paymentHeaderV2 = request.headers.get('PAYMENT-SIGNATURE');
-    const paymentHeaderV1 = request.headers.get('X-PAYMENT');
-    const paymentHeader = paymentHeaderV2 || paymentHeaderV1;
+    // Internal A2A bypass — skip x402 payment if called by another agent
+    const internalKey = request.headers.get('X-Internal-Agent-Key');
+    const isInternalCall =
+      internalKey &&
+      process.env.INTERNAL_AGENT_KEY &&
+      internalKey === process.env.INTERNAL_AGENT_KEY;
 
-    const requestUrl = `${BASE_URL}/api/brand-extraction`;
+    if (!isInternalCall) {
+      const paymentHeaderV2 = request.headers.get('PAYMENT-SIGNATURE');
+      const paymentHeaderV1 = request.headers.get('X-PAYMENT');
+      const paymentHeader = paymentHeaderV2 || paymentHeaderV1;
 
-    const paymentRequirements = createPaymentRequirements(
-      `$${COST_CONFIG.brandExtraction}`,
-      'base-sepolia',
-      requestUrl,
-      'Brand asset extraction from URL'
-    );
+      const requestUrl = `${new URL(request.url).origin}${new URL(request.url).pathname}`;
 
-    const verificationResult = await verifyPayment(
-      paymentHeader,
-      paymentRequirements
-    );
-
-    if (!verificationResult.isValid) {
-      return NextResponse.json(
-        create402Response(
-          paymentRequirements,
-          verificationResult.error,
-          verificationResult.payer
-        ),
-        {
-          status: 402,
-          headers: {
-            'PAYMENT-REQUIRED': encodePaymentRequired(paymentRequirements),
-          },
-        }
+      const paymentRequirements = createPaymentRequirements(
+        `$${COST_CONFIG.brandExtraction}`,
+        'base-sepolia',
+        requestUrl,
+        'Brand asset extraction from URL'
       );
-    }
 
-    // Settle payment asynchronously
-    const capturedPaymentHeader = paymentHeader!;
-    settlePayment(capturedPaymentHeader, paymentRequirements).then((result) => {
-      if (result.success) {
-        console.log('[API] ✓ Payment settled:', result.txHash);
-      } else {
-        console.error('[API] ✗ Payment settlement failed:', result.error);
+      const verificationResult = await verifyPayment(
+        paymentHeader,
+        paymentRequirements
+      );
+
+      if (!verificationResult.isValid) {
+        return NextResponse.json(
+          create402Response(
+            paymentRequirements,
+            verificationResult.error,
+            verificationResult.payer
+          ),
+          {
+            status: 402,
+            headers: {
+              'PAYMENT-REQUIRED': encodePaymentRequired(paymentRequirements),
+            },
+          }
+        );
       }
-    });
+
+      // Settle payment asynchronously
+      const capturedPaymentHeader = paymentHeader!;
+      settlePayment(capturedPaymentHeader, paymentRequirements).then((result) => {
+        if (result.success) {
+          console.log('[API] ✓ Payment settled:', result.txHash);
+        } else {
+          console.error('[API] ✗ Payment settlement failed:', result.error);
+        }
+      });
+    } else {
+      console.log('[API] Internal A2A call — skipping x402 payment');
+    }
 
     // Content-Type validation
     const contentType = request.headers.get('content-type');

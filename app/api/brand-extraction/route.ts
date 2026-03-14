@@ -10,6 +10,7 @@ import {
   encodePaymentRequired,
 } from '@/lib/payment-verification';
 import { storeBrandResult } from '@/lib/foc-storage';
+import { generateBrandReportHtml } from '@/lib/report-html';
 
 export const maxDuration = 60;
 
@@ -114,7 +115,13 @@ export async function POST(request: Request) {
     const runId = `brand_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
 
     // Extract brand assets
-    const brandData = await extractBrandAssets(finalUrl);
+    const rawBrandData = await extractBrandAssets(finalUrl);
+    const brandData = rawBrandData ?? {
+      brand_name: 'Unknown',
+      logos: [],
+      colors: [],
+      backdrop_images: [],
+    };
 
     // Store on Filecoin Onchain Cloud
     const agentId = parseInt(process.env.ERC8004_AGENT_ID ?? '0', 10);
@@ -128,12 +135,20 @@ export async function POST(request: Request) {
       dryRun
     );
 
+    const reportHtml = generateBrandReportHtml(
+      brandData,
+      finalUrl,
+      runId,
+      new Date().toISOString()
+    );
+
     return NextResponse.json({
       success: true,
       runId,
       cid: stored.cid,
       listingId: stored.listingId,
       data: brandData,
+      reportHtml,
     });
   } catch (error) {
     console.error('[API] Brand extraction error:', error);

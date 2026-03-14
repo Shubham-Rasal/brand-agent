@@ -68,6 +68,7 @@ export async function GET() {
           cid: 'string - Filecoin CID',
           listingId: 'string | null',
           data: 'object - brand_name, logos, colors, backdrop_images',
+          reportHtml: 'string - self-contained HTML asset pack, save as .html to view',
         },
       },
       ...(receivingWallet

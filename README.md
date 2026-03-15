@@ -24,13 +24,23 @@ Response:
   "runId": "brand_...",
   "cid": "bafy...",
   "listingId": null,
-  "data": {
-    "brand_name": "Stripe",
-    "logos": [...],
-    "colors": [...],
-    "backdrop_images": [...]
-  }
+  "data": { "brand_name": "Stripe", "logos": [...], "colors": [...], "backdrop_images": [...] },
+  "reportHtml": "<!DOCTYPE html>..."
 }
+```
+
+Save `reportHtml` to a `.html` file and open in a browser for a ready-to-use brand asset pack.
+
+**Paid (purl):**
+```bash
+PURL_PASSWORD=your-wallet-password purl -s -X POST https://brand-agent-six.vercel.app/api/brand-extraction \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://stripe.com","userId":"0xYourWallet"}'
+```
+
+**Paid (Node with @x402/fetch):**
+```bash
+X402_WALLET_PRIVATE_KEY=0x... pnpm test-paid
 ```
 
 ## Setup

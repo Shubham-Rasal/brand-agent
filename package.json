@@ -6,13 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test-paid": "node test-paid.mjs"
   },
   "dependencies": {
     "@coinbase/x402": "^2.1.0",
     "@filoz/synapse-sdk": "latest",
     "@x402/core": "^2.2.0",
     "@x402/evm": "^2.2.0",
+    "@x402/fetch": "^2.2.0",
     "next": "16.1.1",
     "openbrand": "^0.1.1",
     "react": "19.2.3",

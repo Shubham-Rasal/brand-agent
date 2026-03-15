@@ -14,4 +14,5 @@ out
 # misc
 *.log
 .DS_Store
+*-report.html
 .vercel
